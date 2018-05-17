@@ -34,10 +34,12 @@ EXPOSE 27017
 ENTRYPOINT ["container-entrypoint"]
 CMD ["run-mongod"]
 
+COPY apt/mongo36.repo /etc/yum.repos.d/mongodb-org-3.6.repo
+
 RUN yum install -y centos-release-scl && \
-    echo -e "[CBS-tag]\nbaseurl=http://cbs.centos.org/repos/sclo7-rh-mongodb36-rh-candidate/x86_64/os/\ngpgcheck=0" > /etc/yum.repos.d/cbs.repo && \
     yum-config-manager --enable centos-sclo-rh-testing && \
-    INSTALL_PKGS="bind-utils gettext iproute rsync tar shadow-utils rh-mongodb36-mongodb rh-mongodb36 rh-mongodb36-mongo-tools groff-base" && \
+    #INSTALL_PKGS="bind-utils gettext iproute rsync tar shadow-utils rh-mongodb36-mongodb rh-mongodb36 rh-mongodb36-mongo-tools groff-base" && \
+    INSTALL_PKGS="bind-utils gettext iproute rsync tar shadow-utils mongodb-org groff-base" && \
     yum install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
     yum clean all
@@ -45,6 +47,10 @@ RUN yum install -y centos-release-scl && \
 COPY s2i/bin/ $STI_SCRIPTS_PATH
 
 COPY root /
+
+#USER mongodb
+
+RUN useradd mongodb
 
 # Container setup
 RUN touch /etc/mongod.conf && \
@@ -57,4 +63,5 @@ RUN touch /etc/mongod.conf && \
 
 VOLUME ["/var/lib/mongodb/data"]
 
-USER 184
+#USER 184
+USER mongodb
